@@ -34,6 +34,12 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
+                    <release>11</release>
+                    <compilerArgs>
+                        <arg>-Xlint:all</arg>
+                    </compilerArgs>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <!-- Maven Exec Plugin for running the application -->
