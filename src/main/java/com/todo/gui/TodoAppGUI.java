@@ -1,8 +1,11 @@
 package com.todo.gui;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.List;
 
 import com.todo.dao.TodoAppDAO;
+import com.todo.model.Todo;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -27,6 +30,7 @@ public class TodoAppGUI extends JFrame{
         initializeComponents();
         setupLayout();
         setVisible(true);
+        loadTodos();
     }
 
     private void initializeComponents(){
@@ -93,14 +97,78 @@ public class TodoAppGUI extends JFrame{
         gbc.gridy=1;
         inputPanel.add(new JLabel("Description"),gbc);
         gbc.gridx=1;
-        inputPanel.add(descriptionArea,gbc);
+        inputPanel.add(new JScrollPane(descriptionArea),gbc);
 
         gbc.gridx=1;
         gbc.gridy=2;
+        inputPanel.add(completedCheckBox,gbc);
 
-        add(inputPanel,BorderLayout.NORTH);
+        JPanel buttonPanel=new JPanel(new FlowLayout());
+        buttonPanel.add(AddButton);
+        buttonPanel.add(updateButton);
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(refereshButton);
+
+        JPanel filterPanel=new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filterPanel.add(new JLabel("Filter"));
+        filterPanel.add(filterComboBox);
+
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(inputPanel,BorderLayout.CENTER);
+        northPanel.add(buttonPanel,BorderLayout.SOUTH);
+        northPanel.add(filterPanel,BorderLayout.WEST);
+        add(northPanel,BorderLayout.NORTH);
+        add (new JScrollPane(todoTable),BorderLayout.CENTER);
+
+        JPanel statusJPanel= new JPanel(new FlowLayout(FlowLayout.LEFT));
+        statusJPanel.add(new JLabel("Select a todo to edit or delete"));
+        add(statusJPanel,BorderLayout.SOUTH);
+
+    }
+    private void setupEventListeners(){
+        AddButton.addActionListener((e)->{addTodo();});
+        updateButton.addActionListener((e)->{updateTodo();});
+        deleteButton.addActionListener((e)->{deleteTodo();});
+        refereshButton.addActionListener((e)->{refreshTodo();});
+
+    }
+    private void updateTodo(){
+
+    }
+    private void deleteTodo(){
+
+    }
+    private void refreshTodo(){
+
+    }
+    private void addTodo(){
+
+    }
+    private void loadTodos() {
+        try{
+        List<Todo> todos=todoDAO.getAllTodos();
+        updateTable(todos);
+
+        }
+        catch(Exception e){
+            JOptionPane.showMessageDialog(rootPane, e);
+        }
 
 
     }
-
+    private void updateTable(List<Todo> todos){
+        tableModel.setRowCount(0);
+        for(Todo t : todos){
+            Object[] row={
+                t.getId(),
+                t.getTitle(),
+                t.getDescription(),
+                t.isCompleted() ? "Yes" : "No",
+                t.getCreatedAt() != null ? t.getCreatedAt().toString() : "N/A",
+                t.getUpdatedAt() != null ? t.getUpdatedAt().toString() : "N/A"
+            };
+            tableModel.addRow(row);
+        }
+    }
+    
 }
