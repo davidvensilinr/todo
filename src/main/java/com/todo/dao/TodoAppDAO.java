@@ -19,6 +19,8 @@ public class TodoAppDAO {
     private static final String INSERT_TODO="insert into todos(title,description,completed,created_at,updated_at)values(?,?,?,?,?)";
     private static final String SELECT_TODO_BY_ID="select * from todos where id=?";
     private static final String UPDATE_TODO="update todos set title=?,description=?,completed=?,updated_at=? where id=?";
+    private static final String DELETE_TODO="delete from todos where id=?";
+    private static final String FILTER_STRING="select * from todos where completed=?";
     public int createtodo(Todo todo) throws SQLException{
         try(
             Connection conn=DatabaseConnection.getDBConnection();
@@ -83,6 +85,23 @@ public class TodoAppDAO {
         }
 
     }
+    public boolean deleteTodo(Todo todo) throws SQLException{
+        try(
+            Connection conn=DatabaseConnection.getDBConnection();
+            PreparedStatement stmt=conn.prepareStatement(DELETE_TODO);
+
+        )
+        {
+            stmt.setInt(1,todo.getId());
+            int rowAffected=stmt.executeUpdate();
+            return rowAffected>0;
+
+
+
+        }
+
+    }
+    
     private Todo getTodoRow(ResultSet rs) throws SQLException{
         int id =rs.getInt("id");
         String title=rs.getString("title");
@@ -92,6 +111,32 @@ public class TodoAppDAO {
         LocalDateTime updatedAt=rs.getTimestamp("updated_at").toLocalDateTime();
         Todo todo=new Todo(id,title,description,completed,createdAt,updatedAt);
         return todo;
+    }
+    public List<Todo> filterTodo(int filter) throws SQLException{
+        List<Todo> todos=new ArrayList<>();
+        try(
+            Connection conn= DatabaseConnection.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(FILTER_STRING);
+        ){
+            stmt.setInt(1,filter);
+            ResultSet rs= stmt.executeQuery();
+            while(rs.next()){
+                Todo todo = new Todo();
+                todo.setId(rs.getInt("id"));
+                todo.setTitle(rs.getString("title"));
+                todo.setDescription(rs.getString("description"));
+                todo.setCompleted(rs.getBoolean("completed"));
+                todo.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                
+                if (rs.getTimestamp("updated_at") != null) {
+                    todo.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                }
+                
+                todos.add(todo);
+                
+            }
+        }
+        return todos;
     }
     public List<Todo> getAllTodos() throws SQLException {
         List<Todo> todos = new ArrayList<>();

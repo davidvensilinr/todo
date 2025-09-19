@@ -75,7 +75,8 @@ public class TodoAppGUI extends JFrame{
         String[] filterOptions={"All","Completed","Pending"};
         filterComboBox=new JComboBox<>(filterOptions);
         filterComboBox.addActionListener((e)->{
-            //filter
+            String selectedFilter=(String)filterComboBox.getSelectedItem();
+            filterTodo(selectedFilter);
     });
 
     }
@@ -170,11 +171,66 @@ public class TodoAppGUI extends JFrame{
 
 
     }
+    private void filterTodo(String filter){
+        int i=0;
+        if (filter=="Completed"){
+            i=1;
+            JOptionPane.showMessageDialog(this, "Completed tasks","Showing",JOptionPane.INFORMATION_MESSAGE);
+        }
+        else if(filter=="All"){
+            loadTodos();
+            return;
+        }
+        try{
+            List<Todo> todos=todoDAO.filterTodo(i);
+            updateTable(todos);
+    
+            }
+            catch(Exception e){
+                JOptionPane.showMessageDialog(rootPane, e);
+            }
+    
+
+
+    }
     private void deleteTodo(){
+        int row = todoTable.getSelectedRow();
+        if (row==-1){
+            JOptionPane.showMessageDialog(this,"Please select a row to delete","Validation error",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String title= titleField.getText().trim();
+        if (title.isEmpty()){
+            JOptionPane.showMessageDialog(this,"Please enter the title for the todo","Validation error",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int id= (int) todoTable.getValueAt(row, 0);
+        try{
+            Todo todo= todoDAO.getTodoById(id);
+            if (todo!=null){
+                todo.setTitle(title);
+                todo.setDescription(descriptionArea.getText().trim());
+                todo.setCompleted(completedCheckBox.isSelected());
+
+                if(todoDAO.deleteTodo(todo)){
+                    JOptionPane.showMessageDialog(this, "Todo deleted sucessfully","Sucess",JOptionPane.INFORMATION_MESSAGE);
+                    loadTodos();
+                }
+                else{
+                    JOptionPane.showMessageDialog(this, "Failed to deleted todo","Deletetion Error",JOptionPane.ERROR_MESSAGE);
+                }
+
+            }
+        }
+            catch(SQLException e){
+                JOptionPane.showMessageDialog(this, "Failed to udpate","error",JOptionPane.ERROR_MESSAGE);
+                
+            }
+        
 
     }
     private void refreshTodo(){
-
+        loadTodos();
     }
     private void addTodo(){
         String title = titleField.getText().trim();
