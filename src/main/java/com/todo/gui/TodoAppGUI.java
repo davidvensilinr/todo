@@ -2,16 +2,15 @@ package com.todo.gui;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.util.List;
-
 import com.todo.dao.TodoAppDAO;
 import com.todo.model.Todo;
+import java.util.List;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
-import java.util.List;
+
 public class TodoAppGUI extends JFrame{
     private TodoAppDAO todoDAO;
     private JTable todoTable;
@@ -29,6 +28,7 @@ public class TodoAppGUI extends JFrame{
         this.todoDAO = new TodoAppDAO();
         initializeComponents();
         setupLayout();
+        setupEventListeners();
         setVisible(true);
         loadTodos();
     }
@@ -55,6 +55,7 @@ public class TodoAppGUI extends JFrame{
             (e)->{
                 if (!e.getValueIsAdjusting()){
                     //loadSelectedtodo();
+                    loadSelectedtodo();
                 }
             }
         );
@@ -133,6 +134,40 @@ public class TodoAppGUI extends JFrame{
 
     }
     private void updateTodo(){
+        int row = todoTable.getSelectedRow();
+        if (row==-1){
+            JOptionPane.showMessageDialog(this,"Please select a row to update","Validation error",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String title= titleField.getText().trim();
+        if (title.isEmpty()){
+            JOptionPane.showMessageDialog(this,"Please enter the title for the todo","Validation error",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int id= (int) todoTable.getValueAt(row, 0);
+        try{
+            Todo todo= todoDAO.getTodoById(id);
+            if (todo!=null){
+                todo.setTitle(title);
+                todo.setDescription(descriptionArea.getText().trim());
+                todo.setCompleted(completedCheckBox.isSelected());
+
+                if(todoDAO.updateTodo(todo)){
+                    JOptionPane.showMessageDialog(this, "Todo updated sucessfully","Sucess",JOptionPane.INFORMATION_MESSAGE);
+                    loadTodos();
+                }
+                else{
+                    JOptionPane.showMessageDialog(this, "Failed to update todo","Update Error",JOptionPane.ERROR_MESSAGE);
+                }
+
+            }
+        }
+            catch(SQLException e){
+                JOptionPane.showMessageDialog(this, "Failed to udpate","error",JOptionPane.ERROR_MESSAGE);
+                
+            }
+        
+
 
     }
     private void deleteTodo(){
@@ -142,8 +177,46 @@ public class TodoAppGUI extends JFrame{
 
     }
     private void addTodo(){
-
+        String title = titleField.getText().trim();
+        String description = descriptionArea.getText().trim();
+        boolean completed = completedCheckBox.isSelected();
+        
+        if (title.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Title cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        try {
+            Todo todo = new Todo(title, description);
+            todo.setCompleted(completed);
+            todoDAO.createtodo(todo);
+            JOptionPane.showMessageDialog(this, "Todo added successfully");
+            
+            // Clear input fields after adding
+            titleField.setText("");
+            descriptionArea.setText("");
+            completedCheckBox.setSelected(false);
+            
+            // Refresh the todo list
+            loadTodos();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error adding todo: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+    private void loadSelectedtodo(){
+        int row = todoTable.getSelectedRow();
+        if(row != -1){  // Changed condition to check for valid row selection
+            String title = (String) tableModel.getValueAt(row, 1);
+            String description = (String) tableModel.getValueAt(row, 2);
+            String completed = (String) tableModel.getValueAt(row, 3);
+
+            titleField.setText(title);
+            descriptionArea.setText(description);
+            completedCheckBox.setSelected("Yes".equals(completed));
+        }
+    }
+
     private void loadTodos() {
         try{
         List<Todo> todos=todoDAO.getAllTodos();
