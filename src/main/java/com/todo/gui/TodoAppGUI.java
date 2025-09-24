@@ -214,6 +214,8 @@ public class TodoAppGUI extends JFrame{
 
                 if(todoDAO.deleteTodo(todo)){
                     JOptionPane.showMessageDialog(this, "Todo deleted sucessfully","Sucess",JOptionPane.INFORMATION_MESSAGE);
+                    titleField.setText("");
+                    descriptionArea.setText("");
                     loadTodos();
                 }
                 else{
@@ -230,6 +232,7 @@ public class TodoAppGUI extends JFrame{
 
     }
     private void refreshTodo(){
+        filterComboBox.setSelectedIndex(0);
         loadTodos();
     }
     private void addTodo(){
